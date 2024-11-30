@@ -178,6 +178,11 @@ class LocalWeatherSensorEntity(SensorEntity):
         await self._weather.async_update()
 
     @property
+    def unique_id(self) -> str:
+        """Return unique ID."""
+        return f"local-forecast-{self._weather.location_name}-{self.entity_description.key}"
+
+    @property
     def _state(self) -> int | float | None:
         """Return the raw state."""
         _LOGGER.info(f"Looking for {self.entity_description.key}")
