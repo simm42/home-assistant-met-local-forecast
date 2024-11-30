@@ -1,17 +1,14 @@
 """Support for Met.no local forecast service."""
-import json
 import logging
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import timedelta, datetime
 from random import randrange
 
-import pytz
 from homeassistant.components.sensor import SensorDeviceClass, SensorStateClass, SensorEntityDescription, SensorEntity
 from homeassistant.components.tomorrowio import TMRW_ATTR_TEMPERATURE
 from homeassistant.components.weather import (
     Forecast,
-    WeatherEntity,
-    WeatherEntityFeature,
+    WeatherEntityFeature, ATTR_CONDITION_EXCEPTIONAL,
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
@@ -26,9 +23,8 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceEntryType
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.util import dt as dt_util
 
-from .const import ATTR_FORECAST_JSON, ATTRIBUTION, DOMAIN, NAME, CONDITIONS_MAP
+from .const import DOMAIN, NAME, CONDITIONS_MAP
 from .met_api import MetApi
 
 _LOGGER = logging.getLogger(__name__)
@@ -44,7 +40,7 @@ async def async_setup_entry(
     lon = entry.data[CONF_LONGITUDE]
     name = entry.data[CONF_NAME]
 
-    weather = SixHoursWeather(hass, api, name, lat, lon)
+    weather = LocalForecastData(hass, api, name, lat, lon)
 
     sensors = [
         LocalWeatherSensorEntity(
@@ -67,16 +63,10 @@ async def async_setup_entry(
 class LocalWeatherSensorEntityDescription(SensorEntityDescription):
     pass
 
+class NotReadyError(RuntimeError):
+    pass
 
-def format_condition(condition: str) -> str:
-    """Return condition from dict CONDITIONS_MAP."""
-    for key, value in CONDITIONS_MAP.items():
-        if condition in value:
-            return key
-    return condition
-
-
-class SixHoursWeather(WeatherEntity):
+class LocalForecastData:
     """Representation of a Met.no local forecast sensor."""
 
     _attr_native_temperature_unit = UnitOfTemperature.CELSIUS
@@ -99,14 +89,8 @@ class SixHoursWeather(WeatherEntity):
         self.lat = lat
         self.lon = lon
         self._raw_data = None
-        self._forecast: list[Forecast] = None
-        self._first_timeserie = None
         self._forecast_json = {}
-
-    @property
-    def force_update(self) -> str:
-        """Force update."""
-        return True
+        self._updated = None
 
     @property
     def unique_id(self) -> str:
@@ -117,14 +101,6 @@ class SixHoursWeather(WeatherEntity):
     def name(self) -> str:
         """Return the name of the sensor."""
         return f"{NAME}: {self.location_name}"
-
-    @property
-    def condition(self) -> str:
-        """Return the current condition."""
-        condition = self._first_timeserie["data"]["next_1_hours"]["summary"][
-            "symbol_code"
-        ]
-        return format_condition(condition)
 
     @property
     def native_temperature(self) -> float:
@@ -156,23 +132,6 @@ class SixHoursWeather(WeatherEntity):
         ]
 
     @property
-    def attribution(self) -> str:
-        """Return the attribution."""
-        return ATTRIBUTION
-
-    @property
-    def extra_state_attributes(self):
-        """Return the state attributes."""
-        return {
-            ATTR_FORECAST_JSON: self._forecast_json
-        }
-
-    @property
-    def forecast(self) -> list[Forecast]:
-        """Return the forecast array."""
-        return self._forecast
-
-    @property
     def device_info(self):
         """Return the device_info of the device."""
         device_info = DeviceInfo(
@@ -185,67 +144,20 @@ class SixHoursWeather(WeatherEntity):
         )
         return device_info
 
-    def serialize_datetime(self, obj):
-        """serialize datetime to json"""
-        if isinstance(obj, datetime):
-            return obj.isoformat()
-        raise TypeError("Type not serializable")
-
-    async def async_forecast_hourly(self) -> list[Forecast] | None:
-        """Return the hourly forecast in native units.
-        Only implement this method if `WeatherEntityFeature.FORECAST_HOURLY` is set
-        """
-        return self._forecast
+    @property
+    def _first_timeserie(self):
+        if self._raw_data is None:
+            raise NotReadyError
+        return self._raw_data["properties"]["timeseries"][0]
 
     async def async_update(self):
         """Retrieve latest state."""
-        self._raw_data = await self._hass.async_add_executor_job(
-            self._met_api.get_complete, self.lat, self.lon
-        )
-
-        timeseries = self._raw_data["properties"]["timeseries"]
-        self._forecast = []
-        last_added_time = None
-        for timeserie in timeseries:
-            time = dt_util.parse_datetime(timeserie["time"])
-
-            if time < datetime.utcnow().replace(tzinfo=pytz.UTC):
-                # skip forecast in the past
-                continue
-
-            if last_added_time is None or time >= last_added_time + timedelta(hours=6):
-                if "local" not in timeserie["data"]:
-                    _LOGGER.debug("local not found %s", time)
-                    continue
-
-                summary = timeserie["data"]["local"]["summary"]
-                condition = format_condition(summary["symbol_code"])
-                details = timeserie["data"]["local"]["details"]
-                current = timeserie["data"]["instant"]["details"]
-
-                self._forecast.append(
-                    Forecast(
-                        native_temperature=details["air_temperature_max"],
-                        native_templow=details["air_temperature_min"],
-                        native_precipitation=details["precipitation_amount"],
-                        precipitation_probability=details[
-                            "probability_of_precipitation"
-                        ]
-                        if "probability_of_precipitation" in details
-                        else None,
-                        datetime=time.strftime("%Y-%m-%dT%H:%M:%S+00:00"),
-                        condition=condition,
-                        native_pressure=current["air_pressure_at_sea_level"],
-                        wind_bearing=current["wind_from_direction"],
-                        native_wind_speed=current["wind_speed"],
-                    )
-                )
-                last_added_time = time
-        self._forecast_json = json.dumps(
-            self._forecast, default=self.serialize_datetime
-        )
-        self._first_timeserie = self._raw_data["properties"]["timeseries"][0]
-        _LOGGER.info("%s updated", self.location_name)
+        if self._updated is None or datetime.now() - self._updated > timedelta(seconds=300):
+            self._updated = datetime.now()
+            self._raw_data = await self._hass.async_add_executor_job(
+                self._met_api.get_complete, self.lat, self.lon
+            )
+            _LOGGER.info("%s updated", self.location_name)
 
 
 class LocalWeatherSensorEntity(SensorEntity):
@@ -256,16 +168,19 @@ class LocalWeatherSensorEntity(SensorEntity):
     def __init__(
         self,
         hass: HomeAssistant,
-        weather: SixHoursWeather,
+        weather: LocalForecastData,
         description: LocalWeatherSensorEntityDescription,
     ) -> None:
-        """Initialize Tomorrow.io Sensor Entity."""
         self._weather = weather
         self.entity_description = description
 
     @property
     def _state(self) -> int | float | None:
         """Return the raw state."""
-        val = getattr(self._weather, self.entity_description.key)
-        assert not isinstance(val, str)
+        self._weather.async_update()
+        try:
+            val = getattr(self._weather, self.entity_description.key)
+        except NotReadyError:
+            val = -1
+        _LOGGER.info(f"returning {val} for {self.entity_description.key}")
         return val
