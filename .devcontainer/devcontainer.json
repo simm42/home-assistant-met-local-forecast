@@ -2,7 +2,7 @@
 // Note that python:0-3.10-bullseye should be used for local arm64/Apple Silicon.
 // Depending on setup, "remoteUser": "vscode", might be preferred to add.
 {
-	"name": "met_next_6_hours_forecast",
+	"name": "met_local_forecast",
 	"image": "mcr.microsoft.com/devcontainers/python:1-3.12",
 	"postCreateCommand": "scripts/setup",
 	"forwardPorts": [

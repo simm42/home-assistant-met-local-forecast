@@ -2,4 +2,4 @@
 
 set -e
 
-sed -i "s/VERSION =.*/VERSION = \"${1}\"/" custom_components/met_next_6_hours_forecast/const.py
+sed -i "s/VERSION =.*/VERSION = \"${1}\"/" custom_components/met_local_forecast/const.py

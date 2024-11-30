@@ -37,19 +37,19 @@ jobs:
         uses: actions/upload-artifact@v4.3.3
         if: ${{ github.event_name == 'push' }}
         with:
-          name: met_next_6_hours_forecast
-          path: ${{ github.workspace }}/custom_components/met_next_6_hours_forecast
+          name: met_local_forecast
+          path: ${{ github.workspace }}/custom_components/met_local_forecast
 
       # Pack the dir as a zip and upload to the release
       - name: 📦 ZIP Dir
         if: ${{ github.event_name == 'release' }}
         run: |
-          cd ${{ github.workspace }}/custom_components/met_next_6_hours_forecast
-          zip met_next_6_hours_forecast.zip -r ./
+          cd ${{ github.workspace }}/custom_components/met_local_forecast
+          zip met_local_forecast.zip -r ./
 
       - name: 📤 Upload zip to release
         uses: softprops/action-gh-release@v2
         if: ${{ github.event_name == 'release' }}
         with:
-          files: ${{ github.workspace }}/custom_components/met_next_6_hours_forecast/met_next_6_hours_forecast.zip
+          files: ${{ github.workspace }}/custom_components/met_local_forecast/met_local_forecast.zip
 

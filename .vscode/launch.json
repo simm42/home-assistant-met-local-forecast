@@ -13,7 +13,7 @@
       "pathMappings": [
         {
           "localRoot": "${workspaceFolder}",
-          "remoteRoot": "/workspaces/home-assistant-met_next_6_hours_forecast/.devcontainer/hass"
+          "remoteRoot": "/workspaces/home-assistant-met_local_forecast/.devcontainer/hass"
         }
       ]
     },

@@ -191,13 +191,13 @@ class SixHoursWeather(WeatherEntity):
                 continue
 
             if last_added_time is None or time >= last_added_time + timedelta(hours=6):
-                if "next_6_hours" not in timeserie["data"]:
-                    _LOGGER.debug("next_6_hours not found %s", time)
+                if "local" not in timeserie["data"]:
+                    _LOGGER.debug("local not found %s", time)
                     continue
 
-                summary = timeserie["data"]["next_6_hours"]["summary"]
+                summary = timeserie["data"]["local"]["summary"]
                 condition = format_condition(summary["symbol_code"])
-                details = timeserie["data"]["next_6_hours"]["details"]
+                details = timeserie["data"]["local"]["details"]
                 current = timeserie["data"]["instant"]["details"]
 
                 self._forecast.append(
