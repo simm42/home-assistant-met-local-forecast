@@ -1,6 +1,6 @@
 {
   "domain": "met_local_forecast",
-  "name": "Met.no next 6 hours forecast",
+  "name": "Met.no local forecast",
   "codeowners": ["@toringer"],
   "config_flow": true,
   "dependencies": [],

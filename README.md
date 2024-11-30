@@ -1,4 +1,4 @@
-# Met.no next 6 hours forecast component for Home Assistant
+# Met.no local forecast component for Home Assistant
 
 This component will add statistic compatible weather sensors with data from [met.no](https://www.met.no/), for local weather conditions
 

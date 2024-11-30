@@ -1,4 +1,4 @@
-"""Config flow for Met.no next 6 hours forecast integration."""
+"""Config flow for Met.no local forecast integration."""
 from __future__ import annotations
 import logging
 import voluptuous as vol
@@ -30,7 +30,7 @@ async def validate_input(hass: HomeAssistant, lat: float, lon: float) -> dict[st
 
 @config_entries.HANDLERS.register(DOMAIN)
 class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
-    """Handle a config flow for Met.no next 6 hours forecast."""
+    """Handle a config flow for Met.no local forecast."""
 
     VERSION = 1
 

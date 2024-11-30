@@ -1,12 +1,18 @@
-"""Support for Met.no next 6 hours forecast service."""
-import logging
+"""Support for Met.no local forecast service."""
 import json
+import logging
 from datetime import datetime, timedelta
 from random import randrange
+
 import pytz
-
-
-
+from homeassistant.components.sensor import SensorDeviceClass, SensorStateClass, SensorEntityDescription
+from homeassistant.components.tomorrowio import TMRW_ATTR_TEMPERATURE
+from homeassistant.components.weather import (
+    Forecast,
+    WeatherEntity,
+    WeatherEntityFeature,
+)
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     CONF_LATITUDE,
     CONF_LONGITUDE,
@@ -16,18 +22,13 @@ from homeassistant.const import (
     UnitOfLength,
 )
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.entity import DeviceInfo
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.device_registry import DeviceEntryType
+from homeassistant.helpers.entity import DeviceInfo
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.util import dt as dt_util
-from homeassistant.components.weather import (
-    Forecast,
-    WeatherEntity,
-    WeatherEntityFeature,
-)
-from .met_api import MetApi
+
 from .const import ATTR_FORECAST_JSON, ATTRIBUTION, DOMAIN, NAME, CONDITIONS_MAP
+from .met_api import MetApi
 
 _LOGGER = logging.getLogger(__name__)
 SCAN_INTERVAL = timedelta(minutes=randrange(40, 50))
@@ -42,6 +43,17 @@ async def async_setup_entry(
     lon = entry.data[CONF_LONGITUDE]
     name = entry.data[CONF_NAME]
     sensors = [SixHoursWeather(hass, api, name, lat, lon)]
+
+    sensors.append(
+        SensorEntityDescription(
+            key="temperature",
+            attribute=TMRW_ATTR_TEMPERATURE,
+            unit_of_measurement=UnitOfTemperature.CELSIUS,
+            device_class=SensorDeviceClass.TEMPERATURE,
+            state_class=SensorStateClass.MEASUREMENT,
+        ),
+    )
+
     async_add_entities(sensors, True)
 
 
@@ -54,7 +66,7 @@ def format_condition(condition: str) -> str:
 
 
 class SixHoursWeather(WeatherEntity):
-    """Representation of a Met.no next 6 hours forecast sensor."""
+    """Representation of a Met.no local forecast sensor."""
 
     _attr_native_temperature_unit = UnitOfTemperature.CELSIUS
     _attr_native_wind_speed_unit = UnitOfSpeed.METERS_PER_SECOND
@@ -88,7 +100,7 @@ class SixHoursWeather(WeatherEntity):
     @property
     def unique_id(self) -> str:
         """Return unique ID."""
-        return f"six-hours-forecast-{self.location_name}"
+        return f"local-forecast-{self.location_name}"
 
     @property
     def name(self) -> str:
@@ -157,7 +169,7 @@ class SixHoursWeather(WeatherEntity):
             entry_type=DeviceEntryType.SERVICE,
             name=f"{NAME}: {self.location_name}",
             manufacturer="Met.no",
-            model="Met.no next 6 hours forecast",
+            model="Met.no local forecast",
             configuration_url="https://www.met.no/en",
         )
         return device_info

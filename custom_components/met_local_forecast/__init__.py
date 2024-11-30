@@ -1,4 +1,4 @@
-"""Met.no next 6 hours forecast component."""
+"""Met.no local forecast component."""
 from __future__ import annotations
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
