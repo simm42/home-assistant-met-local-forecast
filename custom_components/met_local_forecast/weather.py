@@ -32,6 +32,7 @@ async def async_setup_entry(
     hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
 ) -> None:
     """Setup weather platform."""
+    _LOGGER.info(f"Adding entities")
     api: MetApi = hass.data[DOMAIN]["api"]
     lat = entry.data[CONF_LATITUDE]
     lon = entry.data[CONF_LONGITUDE]
@@ -59,8 +60,10 @@ async def async_setup_entry(
 class LocalWeatherSensorEntityDescription(SensorEntityDescription):
     pass
 
+
 class NotReadyError(RuntimeError):
     pass
+
 
 class LocalForecastData:
     """Representation of a Met.no local forecast sensor."""
