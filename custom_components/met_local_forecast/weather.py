@@ -183,7 +183,7 @@ class LocalWeatherSensorEntity(SensorEntity):
         return f"local-forecast-{self._weather.location_name}-{self.entity_description.key}"
 
     @property
-    def unit_of_measurement(self) -> str | None:
+    def native_unit_of_measurement(self) -> str | None:
         return self.entity_description.unit_of_measurement
 
     @property
