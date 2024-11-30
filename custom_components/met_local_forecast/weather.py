@@ -5,7 +5,6 @@ from datetime import timedelta, datetime
 from random import randrange
 
 from homeassistant.components.sensor import SensorDeviceClass, SensorStateClass, SensorEntityDescription, SensorEntity
-from homeassistant.components.tomorrowio import TMRW_ATTR_TEMPERATURE
 from homeassistant.components.weather import (
     WeatherEntityFeature, )
 from homeassistant.config_entries import ConfigEntry
@@ -46,7 +45,6 @@ async def async_setup_entry(
             weather,
             LocalWeatherSensorEntityDescription(
                 key="native_temperature",
-                attribute=TMRW_ATTR_TEMPERATURE,
                 unit_of_measurement=UnitOfTemperature.CELSIUS,
                 device_class=SensorDeviceClass.TEMPERATURE,
                 state_class=SensorStateClass.MEASUREMENT,
