@@ -92,7 +92,6 @@ class LocalForecastData:
     _attr_native_temperature_unit = UnitOfTemperature.CELSIUS
     _attr_native_wind_speed_unit = UnitOfSpeed.METERS_PER_SECOND
     _attr_native_precipitation_unit = UnitOfLength.MILLIMETERS
-    _attr_supported_features = WeatherEntityFeature.FORECAST_HOURLY
 
     def __init__(
         self,
