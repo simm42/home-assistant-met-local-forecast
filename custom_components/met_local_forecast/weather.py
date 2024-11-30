@@ -51,7 +51,7 @@ async def async_setup_entry(
             hass,
             weather,
             LocalWeatherSensorEntityDescription(
-                key="temperature",
+                key="native_temperature",
                 attribute=TMRW_ATTR_TEMPERATURE,
                 unit_of_measurement=UnitOfTemperature.CELSIUS,
                 device_class=SensorDeviceClass.TEMPERATURE,
@@ -266,6 +266,6 @@ class LocalWeatherSensorEntity(SensorEntity):
     @property
     def _state(self) -> int | float | None:
         """Return the raw state."""
-        val = self._weather.get(self.entity_description.attribute)
+        val = getattr(self._weather, self.entity_description.key)
         assert not isinstance(val, str)
         return val
