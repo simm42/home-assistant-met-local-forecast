@@ -25,7 +25,7 @@ from .const import DOMAIN, NAME
 from .met_api import MetApi
 
 _LOGGER = logging.getLogger(__name__)
-SCAN_INTERVAL = timedelta(minutes=randrange(40, 50))
+SCAN_INTERVAL = timedelta(minutes=1)
 
 
 async def async_setup_entry(
