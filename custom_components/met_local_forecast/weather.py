@@ -202,5 +202,5 @@ class LocalWeatherSensorEntity(SensorEntity):
             val = getattr(self._weather, self.entity_description.key)
         except NotReadyError:
             val = -1
-        _LOGGER.info(f"returning {val} for {self.entity_description.key}")
+        _LOGGER.info(f"returning {val} ({type(val)} for {self.entity_description.key}")
         return val
