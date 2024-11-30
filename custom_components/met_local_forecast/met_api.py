@@ -8,7 +8,7 @@ _LOGGER = logging.getLogger(__name__)
 
 BASE_URL = "https://api.met.no/weatherapi/locationforecast/2.0"
 REQUEST_HEADER = {
-    "User-Agent": "home-assistant-met-local-forecast https://github.com/toringer/home-assistant-met-local-forecast"
+    "User-Agent": "home-assistant-met-local-forecast https://github.com/simm42/home-assistant-met-local-forecast"
 }
 
 
