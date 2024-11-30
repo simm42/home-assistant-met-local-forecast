@@ -183,7 +183,19 @@ class LocalWeatherSensorEntity(SensorEntity):
         return f"local-forecast-{self._weather.location_name}-{self.entity_description.key}"
 
     @property
-    def _state(self) -> int | float | None:
+    def unit_of_measurement(self) -> str | None:
+        return self.entity_description.unit_of_measurement
+
+    @property
+    def state_class(self) -> str | None:
+        return self.entity_description.state_class
+
+    @property
+    def device_class(self) -> str | None:
+        return self.entity_description.device_class
+
+    @property
+    def native_value(self) -> int | float | None:
         """Return the raw state."""
         _LOGGER.info(f"Looking for {self.entity_description.key}")
         try:
