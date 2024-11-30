@@ -7,9 +7,7 @@ from random import randrange
 from homeassistant.components.sensor import SensorDeviceClass, SensorStateClass, SensorEntityDescription, SensorEntity
 from homeassistant.components.tomorrowio import TMRW_ATTR_TEMPERATURE
 from homeassistant.components.weather import (
-    Forecast,
-    WeatherEntityFeature, ATTR_CONDITION_EXCEPTIONAL,
-)
+    WeatherEntityFeature, )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     CONF_LATITUDE,
@@ -24,7 +22,7 @@ from homeassistant.helpers.device_registry import DeviceEntryType
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import DOMAIN, NAME, CONDITIONS_MAP
+from .const import DOMAIN, NAME
 from .met_api import MetApi
 
 _LOGGER = logging.getLogger(__name__)
@@ -174,10 +172,14 @@ class LocalWeatherSensorEntity(SensorEntity):
         self._weather = weather
         self.entity_description = description
 
+    async def async_update(self):
+        """Retrieve latest state."""
+        await self._weather.async_update()
+
     @property
     def _state(self) -> int | float | None:
         """Return the raw state."""
-        self._weather.async_update()
+        _LOGGER.info(f"Looking for {self.entity_description.key}")
         try:
             val = getattr(self._weather, self.entity_description.key)
         except NotReadyError:
