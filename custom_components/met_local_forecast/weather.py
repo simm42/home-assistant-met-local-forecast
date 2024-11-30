@@ -1,11 +1,12 @@
 """Support for Met.no local forecast service."""
 import json
 import logging
+from dataclasses import dataclass
 from datetime import datetime, timedelta
 from random import randrange
 
 import pytz
-from homeassistant.components.sensor import SensorDeviceClass, SensorStateClass, SensorEntityDescription
+from homeassistant.components.sensor import SensorDeviceClass, SensorStateClass, SensorEntityDescription, SensorEntity
 from homeassistant.components.tomorrowio import TMRW_ATTR_TEMPERATURE
 from homeassistant.components.weather import (
     Forecast,
@@ -42,19 +43,29 @@ async def async_setup_entry(
     lat = entry.data[CONF_LATITUDE]
     lon = entry.data[CONF_LONGITUDE]
     name = entry.data[CONF_NAME]
-    sensors = [SixHoursWeather(hass, api, name, lat, lon)]
 
-    sensors.append(
-        SensorEntityDescription(
-            key="temperature",
-            attribute=TMRW_ATTR_TEMPERATURE,
-            unit_of_measurement=UnitOfTemperature.CELSIUS,
-            device_class=SensorDeviceClass.TEMPERATURE,
-            state_class=SensorStateClass.MEASUREMENT,
-        ),
-    )
+    weather = SixHoursWeather(hass, api, name, lat, lon)
+
+    sensors = [
+        LocalWeatherSensorEntity(
+            hass,
+            weather,
+            LocalWeatherSensorEntityDescription(
+                key="temperature",
+                attribute=TMRW_ATTR_TEMPERATURE,
+                unit_of_measurement=UnitOfTemperature.CELSIUS,
+                device_class=SensorDeviceClass.TEMPERATURE,
+                state_class=SensorStateClass.MEASUREMENT,
+            ),
+        )
+    ]
 
     async_add_entities(sensors, True)
+
+
+@dataclass(frozen=True)
+class LocalWeatherSensorEntityDescription(SensorEntityDescription):
+    pass
 
 
 def format_condition(condition: str) -> str:
@@ -235,3 +246,26 @@ class SixHoursWeather(WeatherEntity):
         )
         self._first_timeserie = self._raw_data["properties"]["timeseries"][0]
         _LOGGER.info("%s updated", self.location_name)
+
+
+class LocalWeatherSensorEntity(SensorEntity):
+    """Base sensor entity."""
+
+    entity_description: SensorEntityDescription
+
+    def __init__(
+        self,
+        hass: HomeAssistant,
+        weather: SixHoursWeather,
+        description: LocalWeatherSensorEntityDescription,
+    ) -> None:
+        """Initialize Tomorrow.io Sensor Entity."""
+        self._weather = weather
+        self.entity_description = description
+
+    @property
+    def _state(self) -> int | float | None:
+        """Return the raw state."""
+        val = self._weather.get(self.entity_description.attribute)
+        assert not isinstance(val, str)
+        return val
