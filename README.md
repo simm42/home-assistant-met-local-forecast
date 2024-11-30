@@ -14,4 +14,4 @@ This component will add statistic compatible weather sensors with data from [met
 Configuration of the integration is done through Configuration > Integrations where you enter coordinates.
 
 Enter the latitude and longitude as decimals for the selected location.
-![configure](https://raw.githubusercontent.com/toringer/home-assistant-met-next-6-hours-forecast/master/configure.png)
+![configure](https://raw.githubusercontent.com/toringer/home-assistant-met-local-forecast/master/configure.png)
