@@ -6,7 +6,7 @@ from homeassistant.core import HomeAssistant
 from .const import DOMAIN
 from .met_api import MetApi
 
-PLATFORMS: list[Platform] = [Platform.WEATHER]
+PLATFORMS: list[Platform] = [Platform.SENSOR]
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:

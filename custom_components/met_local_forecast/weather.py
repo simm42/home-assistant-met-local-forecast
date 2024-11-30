@@ -14,7 +14,7 @@ from homeassistant.const import (
     CONF_NAME,
     UnitOfTemperature,
     UnitOfSpeed,
-    UnitOfLength,
+    UnitOfLength, UnitOfPressure, PERCENTAGE,
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceEntryType
@@ -44,13 +44,34 @@ async def async_setup_entry(
         LocalWeatherSensorEntity(
             hass,
             weather,
+            field
+        )
+        for field in [
             LocalWeatherSensorEntityDescription(
                 key="native_temperature",
                 unit_of_measurement=UnitOfTemperature.CELSIUS,
                 device_class=SensorDeviceClass.TEMPERATURE,
                 state_class=SensorStateClass.MEASUREMENT,
             ),
-        )
+            LocalWeatherSensorEntityDescription(
+                key="native_pressure",
+                unit_of_measurement=UnitOfPressure.HPA,
+                device_class=SensorDeviceClass.PRESSURE,
+                state_class=SensorStateClass.MEASUREMENT,
+            ),
+            LocalWeatherSensorEntityDescription(
+                key="humidity",
+                unit_of_measurement=PERCENTAGE,
+                device_class=SensorDeviceClass.HUMIDITY,
+                state_class=SensorStateClass.MEASUREMENT,
+            ),
+            LocalWeatherSensorEntityDescription(
+                key="native_wind_speed",
+                unit_of_measurement=UnitOfSpeed.MILES_PER_HOUR,
+                device_class=SensorDeviceClass.WIND_SPEED,
+                state_class=SensorStateClass.MEASUREMENT,
+            ),
+        ]
     ]
 
     async_add_entities(sensors, True)
