@@ -67,7 +67,7 @@ async def async_setup_entry(
             ),
             LocalWeatherSensorEntityDescription(
                 key="native_wind_speed",
-                unit_of_measurement=UnitOfSpeed.MILES_PER_HOUR,
+                unit_of_measurement=UnitOfSpeed.METERS_PER_SECOND,
                 device_class=SensorDeviceClass.WIND_SPEED,
                 state_class=SensorStateClass.MEASUREMENT,
             ),
