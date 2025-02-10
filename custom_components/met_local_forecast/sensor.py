@@ -2,11 +2,8 @@
 import logging
 from dataclasses import dataclass
 from datetime import timedelta, datetime
-from random import randrange
 
 from homeassistant.components.sensor import SensorDeviceClass, SensorStateClass, SensorEntityDescription, SensorEntity
-from homeassistant.components.weather import (
-    WeatherEntityFeature, )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     CONF_LATITUDE,

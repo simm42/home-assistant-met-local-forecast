@@ -20,7 +20,7 @@ class MetApi:
 
     def get_complete(self, lat: float, lon: float):
         """Get complete forecast"""
-        url = f"{BASE_URL}/mini"
+        url = f"{BASE_URL}/compact"
         param = {"lat": lat, "lon": lon}
         response = requests.get(url=url, params=param, headers=REQUEST_HEADER)
         if response.status_code != 200:
